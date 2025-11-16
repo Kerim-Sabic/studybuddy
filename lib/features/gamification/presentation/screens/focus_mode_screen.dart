@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:studybuddy/core/widgets/glass_card.dart';
 import 'package:studybuddy/features/gamification/domain/entities/gamification.dart';
@@ -389,24 +390,70 @@ class _TreeVisualization extends StatelessWidget {
     return AnimatedBuilder(
       animation: pulseAnimation,
       builder: (context, child) {
-        final scale = isGrowing ? 1.0 + (pulseAnimation.value * 0.1) : 1.0;
+        final scale = isGrowing ? 1.0 + (pulseAnimation.value * 0.05) : 1.0;
+        final breathe = isGrowing ? pulseAnimation.value * 0.03 : 0.0;
 
         return Transform.scale(
           scale: scale,
           child: Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.green.withOpacity(0.1),
-            ),
-            child: Center(
-              child: Text(
-                _getTreeEmoji(),
-                style: TextStyle(
-                  fontSize: _getTreeSize(),
+            width: 280,
+            height: 320,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Ground/soil base
+                Positioned(
+                  bottom: 0,
+                  child: Container(
+                    width: 240,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.brown[800]!.withOpacity(0.4),
+                          Colors.brown[600]!.withOpacity(0.3),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+
+                // Main tree - custom painted
+                Positioned(
+                  bottom: 30,
+                  child: CustomPaint(
+                    size: const Size(200, 250),
+                    painter: TreePainter(
+                      growthStage: growthStage,
+                      treeType: treeType,
+                      breatheAnimation: breathe,
+                    ),
+                  ),
+                ),
+
+                // Particle effects when growing
+                if (isGrowing && growthStage != TreeGrowthStage.seed)
+                  ...List.generate(5, (index) {
+                    final angle = (index / 5) * math.pi * 2;
+                    final distance = 80 + (pulseAnimation.value * 20);
+                    return Positioned(
+                      left: 140 + (distance * math.cos(angle)),
+                      top: 160 + (distance * math.sin(angle)),
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _getTreeColor(treeType)
+                              .withOpacity(1 - pulseAnimation.value),
+                        ),
+                      ),
+                    );
+                  }),
+              ],
             ),
           ),
         );
@@ -414,34 +461,345 @@ class _TreeVisualization extends StatelessWidget {
     );
   }
 
-  String _getTreeEmoji() {
+  Color _getTreeColor(TreeType type) {
+    switch (type) {
+      case TreeType.oak:
+        return Colors.green[700]!;
+      case TreeType.pine:
+        return Colors.green[800]!;
+      case TreeType.cherry:
+        return Colors.pink[300]!;
+      case TreeType.maple:
+        return Colors.orange[700]!;
+      case TreeType.willow:
+        return Colors.green[400]!;
+      case TreeType.bamboo:
+        return Colors.green[600]!;
+      case TreeType.sakura:
+        return Colors.pink[200]!;
+    }
+  }
+}
+
+/// Custom painter for beautiful 2D trees with depth
+class TreePainter extends CustomPainter {
+  final TreeGrowthStage growthStage;
+  final TreeType treeType;
+  final double breatheAnimation;
+
+  TreePainter({
+    required this.growthStage,
+    required this.treeType,
+    required this.breatheAnimation,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final centerX = size.width / 2;
+    final bottomY = size.height;
+
     switch (growthStage) {
       case TreeGrowthStage.seed:
-        return '🌱';
+        _paintSeed(canvas, centerX, bottomY);
+        break;
       case TreeGrowthStage.sprout:
-        return '🌿';
+        _paintSprout(canvas, centerX, bottomY);
+        break;
       case TreeGrowthStage.sapling:
-        return '🌳';
+        _paintSapling(canvas, centerX, bottomY, size);
+        break;
       case TreeGrowthStage.tree:
-        return '🌲';
+        _paintTree(canvas, centerX, bottomY, size);
+        break;
       case TreeGrowthStage.giant:
-        return '🌴';
+        _paintGiantTree(canvas, centerX, bottomY, size);
+        break;
     }
   }
 
-  double _getTreeSize() {
-    switch (growthStage) {
-      case TreeGrowthStage.seed:
-        return 40;
-      case TreeGrowthStage.sprout:
-        return 60;
-      case TreeGrowthStage.sapling:
-        return 80;
-      case TreeGrowthStage.tree:
-        return 100;
-      case TreeGrowthStage.giant:
-        return 120;
+  void _paintSeed(Canvas canvas, double x, double y) {
+    // Soil mound
+    final soilPaint = Paint()
+      ..color = Colors.brown[700]!
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(x, y - 10), 15, soilPaint);
+
+    // Seed
+    final seedPaint = Paint()
+      ..color = Colors.brown[900]!
+      ..style = PaintingStyle.fill;
+
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(x, y - 10), width: 12, height: 16),
+      seedPaint,
+    );
+
+    // Highlight
+    final highlightPaint = Paint()
+      ..color = Colors.brown[600]!
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(x - 2, y - 13), 3, highlightPaint);
+  }
+
+  void _paintSprout(Canvas canvas, double x, double y) {
+    // Stem
+    final stemPaint = Paint()
+      ..color = Colors.green[700]!
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final stemPath = Path();
+    stemPath.moveTo(x, y);
+    stemPath.quadraticBezierTo(x - 5, y - 20, x, y - 35);
+    canvas.drawPath(stemPath, stemPaint);
+
+    // Leaves
+    final leafPaint = Paint()
+      ..color = Colors.green[600]!
+      ..style = PaintingStyle.fill;
+
+    // Left leaf
+    final leftLeaf = Path();
+    leftLeaf.moveTo(x - 10, y - 25);
+    leftLeaf.quadraticBezierTo(x - 20, y - 20, x - 15, y - 15);
+    leftLeaf.quadraticBezierTo(x - 10, y - 18, x - 10, y - 25);
+    canvas.drawPath(leftLeaf, leafPaint);
+
+    // Right leaf
+    final rightLeaf = Path();
+    rightLeaf.moveTo(x + 10, y - 25);
+    rightLeaf.quadraticBezierTo(x + 20, y - 20, x + 15, y - 15);
+    rightLeaf.quadraticBezierTo(x + 10, y - 18, x + 10, y - 25);
+    canvas.drawPath(rightLeaf, leafPaint);
+  }
+
+  void _paintSapling(Canvas canvas, double x, double y, Size size) {
+    // Trunk
+    final trunkPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [Colors.brown[800]!, Colors.brown[600]!],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ).createShader(Rect.fromLTWH(x - 8, y - 80, 16, 80))
+      ..style = PaintingStyle.fill;
+
+    final trunk = Path();
+    trunk.moveTo(x - 8, y);
+    trunk.lineTo(x - 5, y - 80);
+    trunk.lineTo(x + 5, y - 80);
+    trunk.lineTo(x + 8, y);
+    trunk.close();
+    canvas.drawPath(trunk, trunkPaint);
+
+    // Small canopy
+    _paintCanopy(canvas, x, y - 80, 50, _getTreeColor(treeType));
+  }
+
+  void _paintTree(Canvas canvas, double x, double y, Size size) {
+    // Trunk with shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+    final shadow = Path();
+    shadow.moveTo(x - 12 + 4, y + 2);
+    shadow.lineTo(x - 8 + 4, y - 120 + 2);
+    shadow.lineTo(x + 8 + 4, y - 120 + 2);
+    shadow.lineTo(x + 12 + 4, y + 2);
+    shadow.close();
+    canvas.drawPath(shadow, shadowPaint);
+
+    // Main trunk
+    final trunkPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [Colors.brown[900]!, Colors.brown[700]!, Colors.brown[600]!],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(Rect.fromLTWH(x - 12, y - 120, 24, 120))
+      ..style = PaintingStyle.fill;
+
+    final trunk = Path();
+    trunk.moveTo(x - 12, y);
+    trunk.lineTo(x - 8, y - 120);
+    trunk.lineTo(x + 8, y - 120);
+    trunk.lineTo(x + 12, y);
+    trunk.close();
+    canvas.drawPath(trunk, trunkPaint);
+
+    // Trunk texture
+    final texturePaint = Paint()
+      ..color = Colors.brown[800]!
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 0; i < 5; i++) {
+      final yPos = y - 20 - (i * 20);
+      canvas.drawLine(
+        Offset(x - 10, yPos),
+        Offset(x - 6, yPos + 3),
+        texturePaint,
+      );
     }
+
+    // Larger canopy with layers
+    _paintLayeredCanopy(canvas, x, y - 120, 90, _getTreeColor(treeType));
+  }
+
+  void _paintGiantTree(Canvas canvas, double x, double y, Size size) {
+    // Massive trunk with shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+
+    final shadow = Path();
+    shadow.moveTo(x - 18 + 6, y + 3);
+    shadow.lineTo(x - 12 + 6, y - 160 + 3);
+    shadow.lineTo(x + 12 + 6, y - 160 + 3);
+    shadow.lineTo(x + 18 + 6, y + 3);
+    shadow.close();
+    canvas.drawPath(shadow, shadowPaint);
+
+    // Trunk with gradient
+    final trunkPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          Colors.brown[900]!,
+          Colors.brown[800]!,
+          Colors.brown[700]!,
+          Colors.brown[600]!
+        ],
+        stops: const [0.0, 0.3, 0.7, 1.0],
+      ).createShader(Rect.fromLTWH(x - 18, y - 160, 36, 160))
+      ..style = PaintingStyle.fill;
+
+    final trunk = Path();
+    trunk.moveTo(x - 18, y);
+    trunk.quadraticBezierTo(x - 15, y - 80, x - 12, y - 160);
+    trunk.lineTo(x + 12, y - 160);
+    trunk.quadraticBezierTo(x + 15, y - 80, x + 18, y);
+    trunk.close();
+    canvas.drawPath(trunk, trunkPaint);
+
+    // Detailed bark texture
+    final barkPaint = Paint()
+      ..color = Colors.brown[800]!
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 0; i < 8; i++) {
+      final yPos = y - 15 - (i * 20);
+      canvas.drawLine(
+        Offset(x - 15, yPos),
+        Offset(x - 10, yPos + 4),
+        barkPaint,
+      );
+      canvas.drawLine(
+        Offset(x + 10, yPos - 5),
+        Offset(x + 15, yPos - 1),
+        barkPaint,
+      );
+    }
+
+    // Massive multi-layered canopy
+    final mainColor = _getTreeColor(treeType);
+
+    // Background layer (darkest)
+    _paintCanopy(canvas, x, y - 160, 130, mainColor.withOpacity(0.6));
+
+    // Middle layer
+    _paintCanopy(canvas, x - 20, y - 170, 100, mainColor.withOpacity(0.8));
+    _paintCanopy(canvas, x + 20, y - 170, 100, mainColor.withOpacity(0.8));
+
+    // Front layer (brightest)
+    _paintCanopy(canvas, x, y - 180, 110, mainColor);
+
+    // Add some detail leaves
+    _paintDetailedLeaves(canvas, x, y - 180, mainColor);
+  }
+
+  void _paintCanopy(Canvas canvas, double x, double y, double radius, Color color) {
+    // Shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.15)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+
+    canvas.drawCircle(Offset(x + 3, y + 3), radius * 0.8, shadowPaint);
+
+    // Main canopy with gradient
+    final canopyPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withOpacity(0.9),
+          color.withOpacity(0.7),
+        ],
+        stops: const [0.5, 1.0],
+      ).createShader(Rect.fromCircle(center: Offset(x, y), radius: radius));
+
+    canvas.drawCircle(Offset(x, y), radius * 0.8, canopyPaint);
+
+    // Highlight
+    final highlightPaint = Paint()
+      ..color = Colors.white.withOpacity(0.2);
+
+    canvas.drawCircle(Offset(x - radius * 0.3, y - radius * 0.3), radius * 0.2, highlightPaint);
+  }
+
+  void _paintLayeredCanopy(Canvas canvas, double x, double y, double radius, Color color) {
+    // Layer 1 (back, darker)
+    _paintCanopy(canvas, x, y + 10, radius * 0.9, color.withOpacity(0.7));
+
+    // Layer 2 (front, lighter)
+    _paintCanopy(canvas, x, y, radius, color);
+  }
+
+  void _paintDetailedLeaves(Canvas canvas, double x, double y, Color color) {
+    final leafPaint = Paint()
+      ..color = color.withOpacity(0.9)
+      ..style = PaintingStyle.fill;
+
+    // Add individual leaf clusters
+    final positions = [
+      Offset(x - 40, y + 20),
+      Offset(x + 40, y + 20),
+      Offset(x - 30, y - 20),
+      Offset(x + 30, y - 20),
+      Offset(x, y + 30),
+    ];
+
+    for (final pos in positions) {
+      final leaf = Path();
+      leaf.moveTo(pos.dx, pos.dy);
+      leaf.quadraticBezierTo(pos.dx - 8, pos.dy - 10, pos.dx - 5, pos.dy - 15);
+      leaf.quadraticBezierTo(pos.dx, pos.dy - 12, pos.dx, pos.dy);
+      canvas.drawPath(leaf, leafPaint);
+    }
+  }
+
+  Color _getTreeColor(TreeType type) {
+    switch (type) {
+      case TreeType.oak:
+        return Colors.green[700]!;
+      case TreeType.pine:
+        return Colors.green[800]!;
+      case TreeType.cherry:
+        return Colors.pink[300]!;
+      case TreeType.maple:
+        return Colors.orange[700]!;
+      case TreeType.willow:
+        return Colors.lightGreen[400]!;
+      case TreeType.bamboo:
+        return Colors.green[600]!;
+      case TreeType.sakura:
+        return Colors.pink[200]!;
+    }
+  }
+
+  @override
+  bool shouldRepaint(TreePainter oldDelegate) {
+    return oldDelegate.growthStage != growthStage ||
+        oldDelegate.breatheAnimation != breatheAnimation;
   }
 }
 

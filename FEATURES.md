@@ -185,14 +185,36 @@ AIAPIService().initialize(
    - Streak freeze items
    - Milestone rewards
 
-4. **Focus Mode (Forest-style)**
+4. **Focus Mode (Forest-style)** 🌳✨
    **Location:** `lib/features/gamification/presentation/screens/focus_mode_screen.dart`
 
-   - Plant trees while studying
-   - Tree dies if you leave early
-   - Growth stages: Seed → Sprout → Sapling → Tree → Giant
+   **Beautiful Custom-Painted Trees!**
+   - **Stunning 2D Artwork** - Hand-crafted tree designs with depth and shadows
+   - **7 Different Tree Types** - Oak 🌳, Pine 🌲, Cherry 🌸, Maple 🍁, Willow 🌿, Bamboo 🎋, Sakura 🌺
+
+   **5 Detailed Growth Stages:**
+   - 🌱 **Seed** - Realistic soil mound with seed and highlight
+   - 🌿 **Sprout** - Curved stem with bilateral leaves
+   - 🌳 **Sapling** - Small trunk with gradient canopy
+   - 🌲 **Tree** - Full tree with layered canopy, bark texture, and shadows
+   - 🌴 **Giant** - Massive multi-layered tree with detailed individual leaves
+
+   **Professional Visual Effects:**
+   - Custom Canvas painting for each stage
+   - Radial gradients for canopy depth
+   - Linear gradients for realistic trunks
+   - Drop shadows for 3D appearance
+   - Bark texture details on mature trees
+   - Individual leaf clusters on giant trees
+   - Ground/soil base with gradient
+   - Breathing/swaying animation while growing
+   - Magical particle effects during growth
+   - Color-coded by tree type (greens, pinks, oranges)
+
+   **Gameplay:**
+   - Tree dies if you leave early - stay focused!
    - Duration options: 25, 50, 90 minutes
-   - XP rewards for completion
+   - XP rewards for completion (bonus for perfect focus)
    - Distraction tracking
 
 ### Social Features
