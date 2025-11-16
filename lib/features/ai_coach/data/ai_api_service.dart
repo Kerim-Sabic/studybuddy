@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 /// AI API Integration Service
-/// Supports OpenAI and Anthropic (Claude) APIs
+/// Supports DeepSeek (PRIMARY - Fast & Affordable), OpenAI and Anthropic (Claude) APIs
 ///
 /// NOTE: Requires http package
 /// Add to pubspec.yaml:
@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 /// ```
 ///
 /// Environment variables needed:
+/// - DEEPSEEK_API_KEY (for DeepSeek - RECOMMENDED)
 /// - OPENAI_API_KEY (for OpenAI)
 /// - ANTHROPIC_API_KEY (for Claude)
 class AIAPIService {
@@ -20,29 +21,36 @@ class AIAPIService {
   AIAPIService._internal();
 
   // API Configuration
+  static const String deepSeekEndpoint = 'https://api.deepseek.com/v1/chat/completions';
   static const String openAIEndpoint = 'https://api.openai.com/v1/chat/completions';
   static const String anthropicEndpoint = 'https://api.anthropic.com/v1/messages';
 
   // Model selection
-  AIProvider _provider = AIProvider.openai;
+  AIProvider _provider = AIProvider.deepseek; // DeepSeek as default - fastest and most affordable
+  String _deepSeekModel = 'deepseek-chat'; // Latest DeepSeek model
   String _openAIModel = 'gpt-4-turbo-preview';
   String _anthropicModel = 'claude-3-5-sonnet-20241022';
 
   // API Keys (should be loaded from secure storage)
+  String? _deepSeekKey;
   String? _openAIKey;
   String? _anthropicKey;
 
   /// Initialize with API keys
   void initialize({
+    String? deepSeekKey,
     String? openAIKey,
     String? anthropicKey,
     AIProvider? preferredProvider,
   }) {
+    _deepSeekKey = deepSeekKey;
     _openAIKey = openAIKey;
     _anthropicKey = anthropicKey;
 
     if (preferredProvider != null) {
       _provider = preferredProvider;
+    } else if (deepSeekKey != null) {
+      _provider = AIProvider.deepseek; // Prefer DeepSeek - best value
     } else if (openAIKey != null) {
       _provider = AIProvider.openai;
     } else if (anthropicKey != null) {
@@ -66,6 +74,14 @@ class AIAPIService {
   }) async {
     try {
       switch (_provider) {
+        case AIProvider.deepseek:
+          return await _chatDeepSeek(
+            message: message,
+            conversationHistory: conversationHistory,
+            systemPrompt: systemPrompt,
+            temperature: temperature,
+          );
+
         case AIProvider.openai:
           return await _chatOpenAI(
             message: message,
@@ -286,6 +302,71 @@ Please analyze:
   // PRIVATE METHODS - Provider-specific implementations
   // ============================================================
 
+  Future<AIResponse> _chatDeepSeek({
+    required String message,
+    List<ChatMessage>? conversationHistory,
+    String? systemPrompt,
+    required double temperature,
+  }) async {
+    if (_deepSeekKey == null) {
+      return AIResponse(
+        success: false,
+        message: '',
+        error: 'DeepSeek API key not configured',
+        provider: AIProvider.deepseek,
+      );
+    }
+
+    final messages = <Map<String, String>>[];
+
+    if (systemPrompt != null) {
+      messages.add({'role': 'system', 'content': systemPrompt});
+    }
+
+    if (conversationHistory != null) {
+      for (final msg in conversationHistory) {
+        messages.add({'role': msg.role, 'content': msg.content});
+      }
+    }
+
+    messages.add({'role': 'user', 'content': message});
+
+    final response = await http.post(
+      Uri.parse(deepSeekEndpoint),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_deepSeekKey',
+      },
+      body: jsonEncode({
+        'model': _deepSeekModel,
+        'messages': messages,
+        'temperature': temperature,
+        'max_tokens': 2000,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final content = data['choices'][0]['message']['content'];
+      final usage = data['usage'];
+
+      return AIResponse(
+        success: true,
+        message: content,
+        provider: AIProvider.deepseek,
+        tokensUsed: usage['total_tokens'],
+        model: _deepSeekModel,
+      );
+    } else {
+      return AIResponse(
+        success: false,
+        message: '',
+        error: 'API Error: ${response.statusCode} - ${response.body}',
+        provider: AIProvider.deepseek,
+      );
+    }
+  }
+
   Future<AIResponse> _chatOpenAI({
     required String message,
     List<ChatMessage>? conversationHistory,
@@ -457,6 +538,11 @@ Please analyze:
   /// Get available models for current provider
   List<String> getAvailableModels() {
     switch (_provider) {
+      case AIProvider.deepseek:
+        return [
+          'deepseek-chat', // Latest model - recommended
+          'deepseek-coder', // Specialized for coding tasks
+        ];
       case AIProvider.openai:
         return [
           'gpt-4-turbo-preview',
@@ -476,6 +562,9 @@ Please analyze:
   /// Set custom model
   void setModel(String model) {
     switch (_provider) {
+      case AIProvider.deepseek:
+        _deepSeekModel = model;
+        break;
       case AIProvider.openai:
         _openAIModel = model;
         break;
@@ -488,6 +577,7 @@ Please analyze:
 
 /// AI Provider enum
 enum AIProvider {
+  deepseek, // RECOMMENDED - Fast, affordable, high quality
   openai,
   anthropic,
 }

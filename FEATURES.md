@@ -113,6 +113,10 @@ final updatedCard = card.calculateNextReview(difficulty);
 **Location:** `lib/features/ai_coach/data/ai_api_service.dart`
 
 **Supported Providers:**
+- **DeepSeek** (PRIMARY - RECOMMENDED) ⚡
+  - `deepseek-chat` - Latest general model
+  - `deepseek-coder` - Specialized for coding tasks
+  - **Why DeepSeek?** 10x faster, more affordable, and high quality!
 - OpenAI (GPT-4 Turbo, GPT-3.5)
 - Anthropic (Claude 3.5 Sonnet, Claude 3 Opus)
 
@@ -539,5 +543,78 @@ Built with ❤️ by the StudyBuddy team
 
 ---
 
+## 🎉 Student-Friendly Features (NEW!)
+
+### Fun Onboarding Experience
+
+**Location:** `lib/features/onboarding/presentation/screens/fun_onboarding_screen.dart`
+
+**Features:**
+- 6 beautifully animated onboarding pages
+- Engaging emoji animations
+- Fun facts about learning science
+- Smooth page transitions
+- Skip option for returning users
+- Color-coded categories
+
+**Pages:**
+1. Welcome - Introduction to StudyBuddy
+2. Science-Backed Learning - Learn 3x faster
+3. Gamification - Level up your brain
+4. AI Study Coach - Powered by DeepSeek
+5. Focus Mode - Plant trees while studying
+6. Social Features - Study together, succeed together
+
+### Daily Motivation & Tips
+
+**Location:** `lib/features/motivation/presentation/screens/daily_motivation_screen.dart`
+
+**Features:**
+- **Quote of the Day** - Inspiring quotes from famous thinkers
+- **Study Tip of the Day** - Practical, science-backed study tips
+- **Personalized Greeting** - Morning, afternoon, evening greetings
+- **Quick Boosts** - Streak tracker, study power, goals, and rank
+- **Success Stories** - Real testimonials from students
+- **Refresh Options** - Get new quotes and tips anytime
+
+**Tip Categories:**
+- Productivity (Pomodoro, time management)
+- Learning (Feynman technique, active recall)
+- Well-being (Sleep, hydration, exercise)
+- Technique (Interleaving, spaced repetition)
+- Health (Movement, breaks, nutrition)
+- Strategy (80/20 rule, prioritization)
+
+### Achievement Celebrations
+
+**Location:** `lib/features/gamification/presentation/screens/achievement_celebration_screen.dart`
+
+**Features:**
+- **Epic Animations** - Confetti, scaling, rotation effects
+- **Visual Rewards** - Display XP earned and badges unlocked
+- **Motivational Messages** - Random encouraging messages
+- **Share Functionality** - Share achievements with friends
+- **Immersive Experience** - Full-screen celebration mode
+
+**Triggers:**
+- Level ups
+- Badge unlocks
+- Streak milestones
+- Quiz perfection
+- Study time goals
+- Challenge victories
+
+### Why Students Love It 💖
+
+1. **Instant Gratification** - See progress and rewards immediately
+2. **Positive Reinforcement** - Celebrate every win, big or small
+3. **Daily Encouragement** - Start each day motivated
+4. **Fun Learning** - Gamification makes studying enjoyable
+5. **Social Connection** - Share achievements and compete with friends
+6. **AI-Powered Help** - DeepSeek AI provides fast, affordable assistance
+7. **Beautiful Design** - Glassmorphic UI that's easy on the eyes
+
+---
+
 **Last Updated:** 2025-11-16
-**Version:** 1.0.0
+**Version:** 1.1.0 - Now with DeepSeek AI ⚡
