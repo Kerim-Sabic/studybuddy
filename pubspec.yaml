@@ -141,6 +141,7 @@ dev_dependencies:
   # Testing
   mockito: ^5.4.4
   faker: ^2.1.0
+  firebase_core_platform_interface: ^5.0.0
   integration_test:
     sdk: flutter
 
@@ -155,7 +156,6 @@ flutter:
     - assets/sounds/
     - assets/sounds/focus/
     - assets/sounds/notifications/
-    - .env
 
   fonts:
     - family: Inter
