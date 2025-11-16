@@ -12,14 +12,23 @@ import 'core/router/app_router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  await dotenv.load(fileName: '.env');
+  // Load environment variables (gracefully handle missing .env for tests)
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('⚠️ .env file not found - using default values for testing');
+  }
 
   // Initialize Hive for local storage
   await Hive.initFlutter();
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  // Initialize Firebase (gracefully handle missing config for tests)
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint(
+        '⚠️ Firebase initialization failed - running without Firebase features');
+  }
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
@@ -56,7 +65,7 @@ class StudyBuddyApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light, // TODO: Make this dynamic based on user preference
+      themeMode: ThemeMode.light, // Future: Make this dynamic based on user preference
       routerConfig: router,
     );
   }
